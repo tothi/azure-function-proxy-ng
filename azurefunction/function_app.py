@@ -32,13 +32,12 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
     s.mount('https://', host_header_ssl.HostHeaderSSLAdapter())
 
     if req.method == "GET":
-        resp = s.get(url, params=req.params, headers=merge_two_dicts(dict(req.headers), set_header()), allow_redirects=False, verify="ssl.crt")
-        return func.HttpResponse(body=resp.content, status_code=resp.status_code, mimetype=resp.headers['content-type'])
+        resp = s.get(url, params=req.params, data=req.get_body(), headers=merge_two_dicts(dict(req.headers), set_header()), allow_redirects=False, verify="ssl.crt")
     elif req.method == "POST":
         resp = s.post(url, params=req.params, data=req.get_body(), headers=merge_two_dicts(dict(req.headers), set_header()), allow_redirects=False, verify="ssl.crt")
-        if 'content-type' in resp.headers:
-            return func.HttpResponse(body=resp.content, status_code=resp.status_code, mimetype=resp.headers['content-type'])
-        else:
-            return func.HttpResponse(body=resp.content, status_code=resp.status_code, headers=resp.headers)
     else:
         return func.HttpResponse("Method not supported.", status_code=200)
+    if 'content-type' in resp.headers:
+        return func.HttpResponse(body=resp.content, status_code=resp.status_code, mimetype=resp.headers['content-type'])
+    else:
+        return func.HttpResponse(body=resp.content, status_code=resp.status_code, headers=resp.headers)
